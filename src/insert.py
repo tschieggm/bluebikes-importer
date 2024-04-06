@@ -1,23 +1,22 @@
-import os
-import sqlite3
 import csv
 import glob
-
+import os
 import re
+import sqlite3
+from datetime import datetime
 
 from src import sql
 from src.download import DATA_DIR
-from datetime import datetime
-
-from tqdm.contrib.concurrent import process_map
 
 # extracts YYYYMM from file names
 MONTH_YEAR_RE = r'(20[0-4]\d)(0[1-9]|1[0-2])'
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATABASE = 'bluebike.sqlite'
+BULK_INSERT_SIZE = 1000
+DATABASE_LOCK_TIMEOUT = 300  # 5 minutes
 
 
-def distribute_csv_files_to_insert(num_workers):
+def evenly_distribute_csv_files_for_insert_by_total_size(num_workers):
     # find all CSV files and their sizes
     pattern = os.path.join(DATA_DIR, '*tripdata.csv')
     files = [(file, os.path.getsize(file)) for file in glob.glob(pattern)]
@@ -40,31 +39,20 @@ def distribute_csv_files_to_insert(num_workers):
 
 
 def insert_rows_from_list_of_csvs(args):
-    worker, files = args
-    id_gap = worker * 100000000
-    memory_conn = sqlite3.connect(':memory:', timeout=10, isolation_level=None)
-    _configure_sqlite_pragma(memory_conn, "memory")
-    cursor = memory_conn.cursor()
-    cursor.execute(sql.table_create)
-    cursor.execute(sql.id_insert, [id_gap])
+    worker_number, files = args
+    memory_conn, cursor = _initialize_in_memory_database(worker_number)
 
     for f in files:
         _insert_rows_from_single_csv(f, memory_conn, cursor)
 
-    cursor.execute("delete from bluebikes where rowid=?", [id_gap])
-
-    file_conn = sqlite3.connect(DATABASE, isolation_level=None)
-    _configure_sqlite_pragma(file_conn)
-
-    # Insert data from the in-memory table to the file-based table
-    memory_conn.execute('ATTACH DATABASE "%s" AS filedb' % DATABASE)
-    memory_conn.execute('INSERT INTO filedb.bluebikes SELECT * FROM bluebikes')
-    memory_conn.execute('DETACH DATABASE filedb')
+    _dump_memory_db_to_file(memory_conn)
     memory_conn.close()
-    file_conn.close()
 
 
 def print_csv_header(file):
+    """
+    Helper function to print the first line of a CSV file. Useful for schema debugging
+    """
     with open(file, newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='|')
         for row in reader:
@@ -75,18 +63,18 @@ def print_csv_header(file):
 def _insert_rows_from_single_csv(file, conn, cursor):
     year, month = re.findall(MONTH_YEAR_RE, file)[0]
     month_year = int('%s%s' % (year, month))
-    # Each process creates its own database connection
 
     with open(file, newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        bulk_insert_size = 1000
         insert_count = 0
         passed_header_row = False
         data_to_insert = []
         for row in reader:
             if not passed_header_row:
                 passed_header_row = True
+                # ensure we skip the header row
                 continue
+
             row.insert(0, file)
             data_to_insert.append(row)
             insert_count += 1
@@ -98,7 +86,7 @@ def _insert_rows_from_single_csv(file, conn, cursor):
                 time_delta = end_date - start_date
                 row.insert(3, time_delta.total_seconds())
 
-            if insert_count == bulk_insert_size:
+            if insert_count == BULK_INSERT_SIZE:
                 _bulk_insert_by_schema(data_to_insert, month_year, cursor, conn)
                 insert_count = 0
                 data_to_insert = []
@@ -123,7 +111,40 @@ def _bulk_insert_by_schema(data_to_insert, month_year, cursor, connection):
         # print(data_to_insert)
 
 
+def _initialize_in_memory_database(worker_number):
+    memory_conn = sqlite3.connect(':memory:', timeout=DATABASE_LOCK_TIMEOUT, isolation_level=None)
+    _configure_sqlite_pragma(memory_conn, "memory")
+    cursor = memory_conn.cursor()
+    cursor.execute(sql.table_create)
+    _seed_auto_increment(cursor, worker_number)
+
+    return memory_conn, cursor
+
+
 def _configure_sqlite_pragma(connection, journal_mode="WAL"):
     connection.execute("PRAGMA synchronous = OFF")
     connection.execute("PRAGMA journal_mode = %s" % journal_mode)
-    connection.execute('PRAGMA busy_timeout = 30000')
+    connection.execute('PRAGMA busy_timeout = %s' % (DATABASE_LOCK_TIMEOUT * 1000))
+
+
+def _seed_auto_increment(cursor, worker_number):
+    """
+    This insert will seed the auto-increment primary key at a value related to the worker number.
+    This is required to avoid ID collisions when dumping the in-memory database into the file.
+    It will be deleted immediately.
+    """
+    auto_increment_start_id = worker_number * 100000000
+    cursor.execute(sql.id_insert, [auto_increment_start_id])
+    cursor.execute("delete from bluebikes where rowid=?", [auto_increment_start_id])
+
+
+def _dump_memory_db_to_file(memory_conn):
+    """
+    Insert data from the in-memory table to the file-based table
+    """
+    file_conn = sqlite3.connect(DATABASE, timeout=DATABASE_LOCK_TIMEOUT, isolation_level=None)
+    _configure_sqlite_pragma(file_conn)
+    memory_conn.execute('ATTACH DATABASE "%s" AS filedb' % DATABASE)
+    memory_conn.execute('INSERT INTO filedb.bluebikes SELECT * FROM bluebikes')
+    memory_conn.execute('DETACH DATABASE filedb')
+    file_conn.close()

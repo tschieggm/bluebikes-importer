@@ -12,9 +12,6 @@ COPY /src ./src
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-# this is the interstatial folder for all bluebike downloads
-RUN mkdir ./data
-
 # Download the bluebike data from s3 and load it into SQL.
 # This uses RUN instead of CMD which will include the output SQL file in the docker layer
 RUN python main.py

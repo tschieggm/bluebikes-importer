@@ -50,4 +50,4 @@ database file and copy it's in memory contents.
 
 This approach enabled **79.5s** build, download, and import, and startup time on my local 
 machine. I'm sure there are faster ways to do it, but this seemed to capture some of the
-wisdom online.
+wisdom online. 800mb/s disk write speed is tough to top.
