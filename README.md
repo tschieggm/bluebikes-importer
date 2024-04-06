@@ -26,13 +26,16 @@ python main.py
 You will need to have a working docker setup on your machine.
 
 **Windows:** https://docs.docker.com/desktop/install/windows-install/
+
 **MacOSX:** https://docs.docker.com/desktop/install/mac-install/
+
 **Ubuntu Linux:** https://docs.docker.com/engine/install/ubuntu/
 
-Running the command below may take upwards of 1-5 minutes to fetch and
-process the bluebikes data depending on your machine and internet connection 
-
 ```commandline
-
-
+docker build -t bluebike-importer .
+docker run -p 8001:8001 bluebike-importer
 ```
+*Note: running the command above may take upwards of 1-5 minutes to fetch 
+and process the bluebikes data depending on your machine and internet connection.*
+
+You should be able to vist datasette at the following address: http://localhost:8001/
