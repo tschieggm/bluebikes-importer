@@ -23,13 +23,11 @@ python main.py
 ```
 
 ### Data science setup
-You will need to have a working docker setup on your machine.
+You will need to have a working docker setup on your machine
 
-**Windows:** https://docs.docker.com/desktop/install/windows-install/
-
-**MacOSX:** https://docs.docker.com/desktop/install/mac-install/
-
-**Ubuntu Linux:** https://docs.docker.com/engine/install/ubuntu/
+- **Windows:** https://docs.docker.com/desktop/install/windows-install/
+- **MacOSX:** https://docs.docker.com/desktop/install/mac-install/
+- **Ubuntu Linux:** https://docs.docker.com/engine/install/ubuntu/
 
 ```commandline
 docker build -t bluebike-importer .
@@ -39,3 +37,17 @@ docker run -p 8001:8001 bluebike-importer
 and process the bluebikes data depending on your machine and internet connection.*
 
 You should be able to vist datasette at the following address: http://localhost:8001/
+
+## Insert Approach
+The application starts by downloading and unzipping all CSV data from the bluebikes S3 bucket.
+
+Once the files exist locally, they will be evenly distributed by size across a number
+of workers (1:1 with CPU cores). Each worker will insert all of its responsible rides 
+into an in-memory SQLite database.
+
+After all files have been processed, each worker will open a connection to the file based 
+database file and copy it's in memory contents.
+
+This approach enabled **79.5s** build, download, and import, and startup time on my local 
+machine. I'm sure there are faster ways to do it, but this seemed to capture some of the
+wisdom online.
