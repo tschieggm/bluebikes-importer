@@ -42,7 +42,7 @@ def insert_rows_from_list_of_csvs(args):
     memory_conn, cursor = _initialize_in_memory_database(worker_number)
 
     for f in files:
-        _insert_rows_from_single_csv(f, memory_conn, cursor)
+        _insert_rows_from_single_csv(f, cursor)
 
     _dump_memory_db_to_file(memory_conn)
     memory_conn.close()
@@ -59,7 +59,7 @@ def print_csv_header(file):
             return
 
 
-def _insert_rows_from_single_csv(file, conn, cursor):
+def _insert_rows_from_single_csv(file, cursor):
     year, month = re.findall(MONTH_YEAR_RE, file)[0]
     month_year = int('%s%s' % (year, month))
 
@@ -86,12 +86,12 @@ def _insert_rows_from_single_csv(file, conn, cursor):
                 row.insert(3, time_delta.total_seconds())
 
             if insert_count == BULK_INSERT_SIZE:
-                _bulk_insert_by_schema(data_to_insert, month_year, cursor, conn)
+                _bulk_insert_by_schema(data_to_insert, month_year, cursor)
                 insert_count = 0
                 data_to_insert = []
 
     # insert any outstanding records from the latch batch
-    _bulk_insert_by_schema(data_to_insert, month_year, cursor, conn)
+    _bulk_insert_by_schema(data_to_insert, month_year, cursor)
 
 
 def _bulk_insert_by_schema(data_to_insert, month_year, cursor):
