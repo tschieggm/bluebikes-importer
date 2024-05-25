@@ -37,7 +37,7 @@ def main(data_dir, is_cleanup_downloads=True):
 
     print("==== Inserting with %s workers ====" % worker_count)
     distribution = insert.evenly_distribute_csv_files_for_insert_by_total_size(worker_count, data_dir)
-    process_map(insert.insert_rows_from_list_of_csvs, distribution.items(), max_workers=worker_count)
+    process_map(insert.insert_rows_from_list_of_csvs, distribution.items(), [insert.DATABASE] * len(distribution) , max_workers=worker_count)
 
     # clean up all downloaded data to reduce the size of the docker image
     if is_cleanup_downloads:

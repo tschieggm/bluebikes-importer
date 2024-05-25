@@ -37,14 +37,14 @@ def evenly_distribute_csv_files_for_insert_by_total_size(num_workers, data_dir):
     return distribution
 
 
-def insert_rows_from_list_of_csvs(args):
-    worker_number, files = args
+def insert_rows_from_list_of_csvs(worker_assignments, database=DATABASE):
+    worker_number, files = worker_assignments
     memory_conn, cursor = _initialize_in_memory_database(worker_number)
 
     for f in files:
         _insert_rows_from_single_csv(f, cursor)
 
-    _dump_memory_db_to_file(memory_conn)
+    _dump_memory_db_to_file(memory_conn, database)
     memory_conn.close()
 
 
@@ -137,13 +137,13 @@ def _seed_auto_increment(cursor, worker_number):
     cursor.execute("delete from bluebikes where rowid=?", [auto_increment_start_id])
 
 
-def _dump_memory_db_to_file(memory_conn):
+def _dump_memory_db_to_file(memory_conn, database=DATABASE):
     """
     Insert data from the in-memory table to the file-based table
     """
-    file_conn = sqlite3.connect(DATABASE, timeout=DATABASE_LOCK_TIMEOUT, isolation_level=None)
+    file_conn = sqlite3.connect(database, timeout=DATABASE_LOCK_TIMEOUT, isolation_level=None)
     _configure_sqlite_pragma(file_conn)
-    memory_conn.execute('ATTACH DATABASE "%s" AS filedb' % DATABASE)
+    memory_conn.execute('ATTACH DATABASE "%s" AS filedb' % database)
     memory_conn.execute('INSERT INTO filedb.bluebikes SELECT * FROM bluebikes')
     memory_conn.execute('DETACH DATABASE filedb')
     file_conn.close()
