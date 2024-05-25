@@ -11,6 +11,10 @@ Running this project assumes you have a modern CPU and at least **8gb of memory 
 There are 2 ways of running this application, developer mode and data science mode. Data science mode will enable you to use the data locally with minimal dependency setup. 
 
 ### For Local Development
+#### With poetry
+This project uses [poetry](https://python-poetry.org) for development and dependency management. Poetry can be installed with [`pipx install poetry`], or see [poetry](https://python-poetry.org/docs/) or [pipx](https://github.com/pypa/pipx) documentation for more information. 
+
+Poetry manages virtual environments for you, so to install the development environment, including dependencies for testing, run `poetry install --all-extras`
 You will need to ensure you have a standalone python environment (preferably with venv). 
 You will need to manually install all the requirements into that environment. 
 This will enable you to develop against the pipeline locally.
@@ -21,6 +25,10 @@ source bbenv/bin/activate
 pip install -r requirements.txt
 python main.py
 ```
+
+#### Without poetry
+Instead of using poetry, you can use the virtual environment of your choosing and install with `pip` as follows: 
+
 
 ### For Data Science
 You will need to have a working docker setup on your machine

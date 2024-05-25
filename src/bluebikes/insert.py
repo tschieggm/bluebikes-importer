@@ -5,8 +5,7 @@ import re
 import sqlite3
 from datetime import datetime
 
-from src import sql
-from src.download import DATA_DIR
+from bluebikes import sql
 
 # extracts YYYYMM from file names
 MONTH_YEAR_RE = r'(20[0-4]\d)(0[1-9]|1[0-2])'
@@ -16,9 +15,9 @@ BULK_INSERT_SIZE = 1000
 DATABASE_LOCK_TIMEOUT = 300  # 5 minutes
 
 
-def evenly_distribute_csv_files_for_insert_by_total_size(num_workers):
+def evenly_distribute_csv_files_for_insert_by_total_size(num_workers, data_dir):
     # find all CSV files and their sizes
-    pattern = os.path.join(DATA_DIR, '*tripdata.csv')
+    pattern = os.path.join(data_dir, '*tripdata.csv')
     files = [(file, os.path.getsize(file)) for file in glob.glob(pattern)]
 
     # sort files by size in descending order (optional but helps in distribution)
@@ -95,7 +94,7 @@ def _insert_rows_from_single_csv(file, conn, cursor):
     _bulk_insert_by_schema(data_to_insert, month_year, cursor, conn)
 
 
-def _bulk_insert_by_schema(data_to_insert, month_year, cursor, connection):
+def _bulk_insert_by_schema(data_to_insert, month_year, cursor):
     if month_year <= 202004:
         insert_stmt = sql.insert_stmt_v0
     elif 202005 <= month_year <= 202303:
