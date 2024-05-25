@@ -1,0 +1,2 @@
+"ride_id","rideable_type","started_at","ended_at","start_station_name","start_station_id","end_station_name","end_station_id","start_lat","start_lng","end_lat","end_lng","member_casual"
+"399F3B5640FA95C7","classic_bike","2024-04-30 16:56:01","2024-04-30 19:12:48","Everett Square (Broadway at Norwood St)","V32003","Chelsea St at Vine St","V32016",42.40672099242264,-71.0564382089648,42.403369462300134,-71.04731440549585,"casual"

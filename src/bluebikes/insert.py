@@ -5,7 +5,7 @@ import re
 import sqlite3
 from datetime import datetime
 
-from bluebikes import sql
+import bluebikes.sql
 
 # extracts YYYYMM from file names
 MONTH_YEAR_RE = r'(20[0-4]\d)(0[1-9]|1[0-2])'
@@ -90,17 +90,17 @@ def _insert_rows_from_single_csv(file, cursor):
                 insert_count = 0
                 data_to_insert = []
 
-    # insert any outstanding records from the latch batch
+    # insert any outstanding records from the last batch
     _bulk_insert_by_schema(data_to_insert, month_year, cursor)
 
 
 def _bulk_insert_by_schema(data_to_insert, month_year, cursor):
     if month_year <= 202004:
-        insert_stmt = sql.insert_stmt_v0
+        insert_stmt = bluebikes.sql.insert_stmt_v0
     elif 202005 <= month_year <= 202303:
-        insert_stmt = sql.insert_stmt_v1
+        insert_stmt = bluebikes.sql.insert_stmt_v1
     elif 202304 <= month_year:
-        insert_stmt = sql.insert_stmt_v2
+        insert_stmt = bluebikes.sql.insert_stmt_v2
     else:
         return
     try:
@@ -114,7 +114,7 @@ def _initialize_in_memory_database(worker_number):
     memory_conn = sqlite3.connect(':memory:', timeout=DATABASE_LOCK_TIMEOUT, isolation_level=None)
     _configure_sqlite_pragma(memory_conn, "memory")
     cursor = memory_conn.cursor()
-    cursor.execute(sql.table_create)
+    cursor.execute(bluebikes.sql.table_create)
     _seed_auto_increment(cursor, worker_number)
 
     return memory_conn, cursor
@@ -133,7 +133,7 @@ def _seed_auto_increment(cursor, worker_number):
     It will be deleted immediately.
     """
     auto_increment_start_id = worker_number * 100000000
-    cursor.execute(sql.id_insert, [auto_increment_start_id])
+    cursor.execute(bluebikes.sql.id_insert, [auto_increment_start_id])
     cursor.execute("delete from bluebikes where rowid=?", [auto_increment_start_id])
 
 
