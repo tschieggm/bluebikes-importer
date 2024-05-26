@@ -6,15 +6,15 @@ RUN apk add --no-cache sqlite
 WORKDIR /usr/app
 
 # Copy only the files for downloading and creating the database
-COPY requirements.txt .
-COPY main.py .
+COPY pyproject.toml pyproject.toml
+COPY README.md README.md
 COPY /src ./src
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install .
 
 # Download the bluebike data from s3 and load it into SQL.
 # This uses RUN instead of CMD which will include the output SQL file in the docker layer
-RUN python main.py
+RUN download_bluebikes
 
 # Copy the Datasette configuration or any other necessary files
 
