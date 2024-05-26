@@ -14,7 +14,9 @@ There are 2 ways of running this application, developer mode and data science mo
 #### With poetry
 This project uses [poetry](https://python-poetry.org) for development and dependency management. Poetry can be installed with [`pipx install poetry`], or see [poetry](https://python-poetry.org/docs/) or [pipx](https://github.com/pypa/pipx) documentation for more information. 
 
-Poetry manages virtual environments for you, so to install the development environment, including dependencies for testing, run `poetry install --all-extras`
+Poetry manages virtual environments for you, so to install the development environment, including dependencies for testing, run `poetry install --all-extras`. To check that the installation worked successfully, run `poetry run pytest` to run unit tests. 
+
+Once you have installed the package, you can create the `bluebikes.sqlite` database by running `poetry run download_bluebikes` or get information on more options with `poetry run download_bluebikes --help`.
 
 #### Without poetry
 Instead of using poetry, you can use the virtual environment of your choosing and install with `pip`. 
