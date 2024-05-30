@@ -32,6 +32,8 @@ pip install -e .[test]
 download_bluebikes
 ```
 
+After installation, tests run simply with `pytest`. 
+
 ### For Data Science
 You will need to have a working docker setup on your machine
 
