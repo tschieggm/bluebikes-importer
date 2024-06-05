@@ -8,7 +8,6 @@ from botocore import client, UNSIGNED
 from tqdm.contrib.concurrent import process_map
 
 BUCKET_NAME = 'hubway-data'
-DATA_DIR = 'data'
 
 boto_config = client.Config(
     region_name='us-east-2',
@@ -21,24 +20,24 @@ boto_config = client.Config(
 s3 = boto3.client('s3', config=boto_config)
 
 
-def download_and_extract(workers):
+def download_and_extract(workers, data_dir):
     s3_files = _get_files_to_download(BUCKET_NAME)
     print("==== Downloading files from S3 ====")
-    process_map(_download_file, s3_files, max_workers=workers)
-    zip_files = _get_files_to_unzip()
+    target_dirs = [data_dir] * len(s3_files)
+    process_map(_download_file, s3_files, target_dirs, max_workers=workers)
+    zip_files = _get_files_to_unzip(data_dir)
     print("==== Unzipping files ====")
-    process_map(_extract_zip, zip_files, max_workers=workers)
+    process_map(_extract_zip, zip_files, target_dirs, max_workers=workers)
 
     # some of the BB files were zipped with hidden __MACOSX directories
-    mac_artifact = os.path.join(DATA_DIR, '__MACOSX')
+    mac_artifact = os.path.join(data_dir, '__MACOSX')
     shutil.rmtree(mac_artifact)
 
 
-def _download_file(object_to_download):
+def _download_file(object_to_download, data_dir):
     object_name, size = object_to_download
     file_name = object_name.split('/')[-1]
-    file_path = os.path.join(DATA_DIR, file_name)
-
+    file_path = os.path.join(data_dir, file_name)
     if os.path.isfile(file_path) and os.stat(file_path).st_size == size:
         return
     else:
@@ -51,11 +50,11 @@ def _get_files_to_download(bucket):
     return files_in_bucket
 
 
-def _get_files_to_unzip():
-    pattern = os.path.join(DATA_DIR, '*.zip')
+def _get_files_to_unzip(data_dir):
+    pattern = os.path.join(data_dir, '*.zip')
     return glob.glob(pattern)
 
 
-def _extract_zip(zip_file):
+def _extract_zip(zip_file, data_dir):
     with zipfile.ZipFile(zip_file, "r") as zip_ref:
-        zip_ref.extractall(DATA_DIR)
+        zip_ref.extractall(data_dir)

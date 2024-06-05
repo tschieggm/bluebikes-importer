@@ -11,16 +11,28 @@ Running this project assumes you have a modern CPU and at least **8gb of memory 
 There are 2 ways of running this application, developer mode and data science mode. Data science mode will enable you to use the data locally with minimal dependency setup. 
 
 ### For Local Development
-You will need to ensure you have a standalone python environment (preferably with venv). 
-You will need to manually install all the requirements into that environment. 
+#### With poetry
+This project uses [poetry](https://python-poetry.org) for development and dependency management. Poetry can be installed with [`pipx install poetry`], or see [poetry](https://python-poetry.org/docs/) or [pipx](https://github.com/pypa/pipx) documentation for more information. 
+
+Poetry manages virtual environments for you, so to install the development environment, including dependencies for testing, run `poetry install --all-extras`. To check that the installation worked successfully, run `poetry run pytest` to run unit tests. 
+
+Once you have installed the package, you can create the `bluebikes.sqlite` database by running `poetry run download_bluebikes` or get information on more options with `poetry run download_bluebikes --help`.
+
+#### Without poetry
+Instead of using poetry, you can use the virtual environment of your choosing and install with `pip`. 
+You will need to install the package in developer mode using the `-e` flag. 
 This will enable you to develop against the pipeline locally.
+
+To use venv as your development environment, you can install the package as follows, then download the data:
 
 ```commandline
 python -m venv bbenv
 source bbenv/bin/activate
-pip install -r requirements.txt
-python main.py
+pip install -e .[test]
+download_bluebikes
 ```
+
+After installation, tests run simply with `pytest`. 
 
 ### For Data Science
 You will need to have a working docker setup on your machine

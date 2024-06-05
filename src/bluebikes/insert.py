@@ -5,8 +5,7 @@ import re
 import sqlite3
 from datetime import datetime
 
-from src import sql
-from src.download import DATA_DIR
+import bluebikes.sql
 
 # extracts YYYYMM from file names
 MONTH_YEAR_RE = r'(20[0-4]\d)(0[1-9]|1[0-2])'
@@ -16,9 +15,9 @@ BULK_INSERT_SIZE = 1000
 DATABASE_LOCK_TIMEOUT = 300  # 5 minutes
 
 
-def evenly_distribute_csv_files_for_insert_by_total_size(num_workers):
+def evenly_distribute_csv_files_for_insert_by_total_size(num_workers, data_dir):
     # find all CSV files and their sizes
-    pattern = os.path.join(DATA_DIR, '*tripdata.csv')
+    pattern = os.path.join(data_dir, '*tripdata.csv')
     files = [(file, os.path.getsize(file)) for file in glob.glob(pattern)]
 
     # sort files by size in descending order (optional but helps in distribution)
@@ -38,14 +37,14 @@ def evenly_distribute_csv_files_for_insert_by_total_size(num_workers):
     return distribution
 
 
-def insert_rows_from_list_of_csvs(args):
-    worker_number, files = args
+def insert_rows_from_list_of_csvs(worker_assignments, database=DATABASE):
+    worker_number, files = worker_assignments
     memory_conn, cursor = _initialize_in_memory_database(worker_number)
 
     for f in files:
-        _insert_rows_from_single_csv(f, memory_conn, cursor)
+        _insert_rows_from_single_csv(f, cursor)
 
-    _dump_memory_db_to_file(memory_conn)
+    _dump_memory_db_to_file(memory_conn, database)
     memory_conn.close()
 
 
@@ -60,7 +59,7 @@ def print_csv_header(file):
             return
 
 
-def _insert_rows_from_single_csv(file, conn, cursor):
+def _insert_rows_from_single_csv(file, cursor):
     year, month = re.findall(MONTH_YEAR_RE, file)[0]
     month_year = int('%s%s' % (year, month))
 
@@ -87,21 +86,21 @@ def _insert_rows_from_single_csv(file, conn, cursor):
                 row.insert(3, time_delta.total_seconds())
 
             if insert_count == BULK_INSERT_SIZE:
-                _bulk_insert_by_schema(data_to_insert, month_year, cursor, conn)
+                _bulk_insert_by_schema(data_to_insert, month_year, cursor)
                 insert_count = 0
                 data_to_insert = []
 
-    # insert any outstanding records from the latch batch
-    _bulk_insert_by_schema(data_to_insert, month_year, cursor, conn)
+    # insert any outstanding records from the last batch
+    _bulk_insert_by_schema(data_to_insert, month_year, cursor)
 
 
-def _bulk_insert_by_schema(data_to_insert, month_year, cursor, connection):
+def _bulk_insert_by_schema(data_to_insert, month_year, cursor):
     if month_year <= 202004:
-        insert_stmt = sql.insert_stmt_v0
+        insert_stmt = bluebikes.sql.insert_stmt_v0
     elif 202005 <= month_year <= 202303:
-        insert_stmt = sql.insert_stmt_v1
+        insert_stmt = bluebikes.sql.insert_stmt_v1
     elif 202304 <= month_year:
-        insert_stmt = sql.insert_stmt_v2
+        insert_stmt = bluebikes.sql.insert_stmt_v2
     else:
         return
     try:
@@ -115,7 +114,7 @@ def _initialize_in_memory_database(worker_number):
     memory_conn = sqlite3.connect(':memory:', timeout=DATABASE_LOCK_TIMEOUT, isolation_level=None)
     _configure_sqlite_pragma(memory_conn, "memory")
     cursor = memory_conn.cursor()
-    cursor.execute(sql.table_create)
+    cursor.execute(bluebikes.sql.table_create)
     _seed_auto_increment(cursor, worker_number)
 
     return memory_conn, cursor
@@ -134,17 +133,17 @@ def _seed_auto_increment(cursor, worker_number):
     It will be deleted immediately.
     """
     auto_increment_start_id = worker_number * 100000000
-    cursor.execute(sql.id_insert, [auto_increment_start_id])
+    cursor.execute(bluebikes.sql.id_insert, [auto_increment_start_id])
     cursor.execute("delete from bluebikes where rowid=?", [auto_increment_start_id])
 
 
-def _dump_memory_db_to_file(memory_conn):
+def _dump_memory_db_to_file(memory_conn, database=DATABASE):
     """
     Insert data from the in-memory table to the file-based table
     """
-    file_conn = sqlite3.connect(DATABASE, timeout=DATABASE_LOCK_TIMEOUT, isolation_level=None)
+    file_conn = sqlite3.connect(database, timeout=DATABASE_LOCK_TIMEOUT, isolation_level=None)
     _configure_sqlite_pragma(file_conn)
-    memory_conn.execute('ATTACH DATABASE "%s" AS filedb' % DATABASE)
+    memory_conn.execute('ATTACH DATABASE "%s" AS filedb' % database)
     memory_conn.execute('INSERT INTO filedb.bluebikes SELECT * FROM bluebikes')
     memory_conn.execute('DETACH DATABASE filedb')
     file_conn.close()
