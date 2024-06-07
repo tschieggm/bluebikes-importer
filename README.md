@@ -20,6 +20,7 @@ Once you have installed the package, you can create the `bluebikes.sqlite` datab
 
 You can access the data interactively with the following command:
 ```commandline
+poetry shell
 datasette serve bluebike.sqlite --host 0.0.0.0 --port 8001 --setting sql_time_limit_ms 60000
 ```
 

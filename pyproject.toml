@@ -7,11 +7,13 @@ readme = "README.md"
 packages = [{include = "bluebikes", from = "src"}]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<=4.0.0"
+python = ">=3.9,<=4.0.0"
 boto3 = "1.34.79"
 botocore = "1.34.79"
 tqdm = "4.66.2"
 datasette = "0.64.6"
+pandas = "^2.2.2"
+haversine = "^2.8.1"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.2.1"
