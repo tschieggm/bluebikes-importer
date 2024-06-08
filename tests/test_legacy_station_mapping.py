@@ -1,8 +1,9 @@
+import os
 from tools.legacy_station_mapping import legacy_station_mapping
 
 
-def test_insert_rows_from_list_of_csvs():
-    test_file = "test_station_mapping.csv"
+def test_insert_rows_from_list_of_csvs(csv_dir):
+    test_file = os.path.join(csv_dir, "test_station_mapping.csv")
     mappings = legacy_station_mapping.generate_mapping(test_file)
 
     expected_mappings = {
