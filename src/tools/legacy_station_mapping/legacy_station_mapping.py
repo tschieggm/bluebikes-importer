@@ -66,7 +66,8 @@ def load_input_csv(filename):
         print("CSV file loaded successfully.")
         return df
     else:
-        raise FileNotFoundError("CSV file not found.")
+        raise FileNotFoundError(
+            "CSV file not found in %s." % absolute_directories)
 
 
 # calculate the distance between two coordinates in km
