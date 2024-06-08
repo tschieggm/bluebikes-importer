@@ -49,11 +49,13 @@ def find_csv_file(directories, filename):
 def load_input_csv(filename):
     directories_to_check = [
         ".",
-        "tools/legacy_station_mapping",
+        "src\\tools\\legacy_station_mapping\\",
+        "tests\\test_files\\legacy_station_mapping\\",
         "data"
     ]
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    absolute_directories = [os.path.join(script_dir, dir) for dir in
+    project_dir = os.path.abspath(os.path.join(script_dir, '../../../'))
+    absolute_directories = [os.path.join(project_dir, dir) for dir in
                             directories_to_check]
     csv_file_path = find_csv_file(absolute_directories, filename)
 
@@ -119,7 +121,8 @@ def format_results(station_id_mapping, missing_station_id_mapping):
             continue
         known_mapping[key] = values.pop()
 
-    sorted_known_mappings = dict(sorted(known_mapping.items(), key=lambda i: int(i[0])))
+    sorted_known_mappings = dict(
+        sorted(known_mapping.items(), key=lambda i: int(i[0])))
     results = {
         'known_mappings': sorted_known_mappings,
         'missing_mappings': missing_station_id_mapping
@@ -128,7 +131,8 @@ def format_results(station_id_mapping, missing_station_id_mapping):
     return results
 
 
-def generate_mapping(filename, max_distance, verbose=False):
+def generate_mapping(filename, max_distance=DEFAULT_MAX_DISTANCE_METERS,
+                     verbose=False, write_to_disk=False):
     df = load_input_csv(filename)
     print("Matching stations under %d meters" % max_distance)
 
@@ -204,7 +208,10 @@ def generate_mapping(filename, max_distance, verbose=False):
     print("\nReconciled %d worth of rides" % ride_count)
     print("\nMapped %d stations" % len(results['known_mappings']))
 
-    json.dump(results, open("results.json", 'w'), cls=SetEncoder)
+    if write_to_disk:
+        json.dump(results, open("results.json", 'w'), cls=SetEncoder)
+    else:
+        return results
 
 
 def main_cli():
@@ -224,10 +231,13 @@ def main_cli():
         Lower numbers produce fewer false positives.
         The default should be suitable for most cases.
     """)
+    parser.add_argument("--write-to-disk", action="store_true",
+                        help="Writes the results to disk")
     parser.add_argument("--verbose", action="store_true",
-                    help="Increases the verbosity for more detailed logging")
+                        help="Increases the verbosity for more detailed logging")
     args = parser.parse_args()
-    generate_mapping(args.filename, float(args.max_distance_meters), args.verbose)
+    generate_mapping(args.filename, int(args.max_distance_meters),
+                     args.verbose, args.write_to_disk)
 
 
 if __name__ == '__main__':
