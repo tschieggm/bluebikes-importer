@@ -1,4 +1,4 @@
-start_id,start_station_name,start_lat,start_lng,count(0)
+start_id,start_station_name,start_lat,start_lng,count
 H32007, Broadway and Cabot,42.4021215,-71.0195408,26
 452,1200 Beacon St,42.34414898749529,-71.11467361450195,14912
 K32015,1200 Beacon St,42.344148,-71.114673,176

@@ -4,7 +4,10 @@ version = "0.1.0"
 description = ""
 authors = ["Matthew Tschiegg", "Virginia Partridge"]
 readme = "README.md"
-packages = [{include = "bluebikes", from = "src"}]
+packages = [
+    { include = "bluebikes", from = "src" },
+    { include = "tools", from = "src" }
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<=4.0.0"
@@ -21,6 +24,7 @@ pytest = "^8.2.1"
 
 [tool.poetry.scripts]
 download_bluebikes = "bluebikes.main:main_cli"
+legacy_station_mapping = "tools.legacy_station_mapping.legacy_station_mapping:main_cli"
 
 [build-system]
 requires = ["poetry-core"]
