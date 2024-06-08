@@ -13,6 +13,11 @@ def csv_dir(fixture_dir):
     return os.path.join(fixture_dir, "csvs")
 
 
+@pytest.fixture(scope="session")
+def legacy_mapping_dir(fixture_dir):
+    return os.path.join(fixture_dir, "legacy_station_mapping")
+
+
 @pytest.fixture(scope="function")
 def empty_in_mem_database_connection():
     with sqlite3.connect(":memory") as conn:
