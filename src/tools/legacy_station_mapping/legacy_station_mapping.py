@@ -49,12 +49,13 @@ def find_csv_file(directories, filename):
 def load_input_csv(filename):
     directories_to_check = [
         ".",
-        "src\\tools\\legacy_station_mapping\\",
-        "tests\\test_files\\legacy_station_mapping\\",
-        "data"
+        "data",
+        os.path.join('src', 'tools', 'legacy_station_mapping'),
+        os.path.join('tests', 'test_files', 'legacy_station_mapping'),
     ]
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_dir = os.path.abspath(os.path.join(script_dir, '../../../'))
+    step_up_to_root = os.path.join('..', '..', '..')
+    project_dir = os.path.abspath(os.path.join(script_dir, step_up_to_root))
     absolute_directories = [os.path.join(project_dir, dir) for dir in
                             directories_to_check]
     csv_file_path = find_csv_file(absolute_directories, filename)
