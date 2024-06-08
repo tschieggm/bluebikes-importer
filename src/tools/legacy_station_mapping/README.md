@@ -72,7 +72,7 @@ should not need to be regenerated.
 To run this tool locally, use the following commands from the project root
 
 ```commandline
-poetry run legacy_station_mapping
+poetry run legacy_station_mapping --write-to-disk
 ```
 
 ## Output
