@@ -1,6 +1,5 @@
 # Bluebikes Data Browser
-This project is in response to the BCU Labs RFC defined here:
-https://docs.google.com/document/d/1ojwAahHgnDE-fbndjQwX3uRxJonkiEE2m5H4PXW-H1A/edit#heading=h.u8swnl4d7t1p
+This project is in response to the BCU Labs RFC defined [here](https://docs.google.com/document/d/1ojwAahHgnDE-fbndjQwX3uRxJonkiEE2m5H4PXW-H1A/edit#heading=h.u8swnl4d7t1p)
 
 ### Hardware Requirements
 Importing the CSV files into SQLite is memory and storage intensive. 
