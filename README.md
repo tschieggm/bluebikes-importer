@@ -17,6 +17,12 @@ Poetry manages virtual environments for you, so to install the development envir
 
 Once you have installed the package, you can create the `bluebikes.sqlite` database by running `poetry run download_bluebikes` or get information on more options with `poetry run download_bluebikes --help`.
 
+You can access the data interactively with the following command:
+```commandline
+poetry shell
+datasette serve bluebike.sqlite --host 0.0.0.0 --port 8001 --setting sql_time_limit_ms 60000
+```
+
 #### Without poetry
 Instead of using poetry, you can use the virtual environment of your choosing and install with `pip`. 
 You will need to install the package in developer mode using the `-e` flag. 

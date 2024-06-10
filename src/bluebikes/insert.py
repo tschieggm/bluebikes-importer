@@ -12,7 +12,7 @@ MONTH_YEAR_RE = r'(20[0-4]\d)(0[1-9]|1[0-2])'
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 DATABASE = 'bluebike.sqlite'
 BULK_INSERT_SIZE = 1000
-DATABASE_LOCK_TIMEOUT = 300  # 5 minutes
+DATABASE_LOCK_TIMEOUT = 900  # 15 minutes
 
 
 def evenly_distribute_csv_files_for_insert_by_total_size(num_workers, data_dir):
