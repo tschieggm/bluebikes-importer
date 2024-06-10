@@ -50,11 +50,11 @@ def load_input_csv(filename):
     directories_to_check = [
         ".",
         "data",
-        os.path.join('src', 'tools', 'legacy_station_mapping'),
-        os.path.join('tests', 'test_files', 'legacy_station_mapping'),
+        os.path.join('src', 'bluebikes', 'legacy_stations'),
+        os.path.join('tests', 'test_files', 'legacy_station'),
     ]
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    step_up_to_root = os.path.join('..', '..', '..')
+    step_up_to_root = os.path.join('../../tools', '..', '..')
     project_dir = os.path.abspath(os.path.join(script_dir, step_up_to_root))
     absolute_directories = [os.path.join(project_dir, dir) for dir in
                             directories_to_check]
@@ -140,52 +140,50 @@ def generate_mapping(filename, max_distance=DEFAULT_MAX_DISTANCE_METERS,
 
     station_id_mapping = {}
     missing_mappings = {}
-    ride_count = 0
 
     # Filter the dataframe to ensure the left side of the mapping has an
     # integer ID less than 1000
-    df['start_id_int'] = pd.to_numeric(df['start_id'], errors='coerce')
-    df_filtered = df[df['start_id_int'].notnull() & (df['start_id_int'] < 1000)]
+    df['station_id_int'] = pd.to_numeric(df['station_id'], errors='coerce')
+    df_filtered = df[df['station_id_int'].notnull() & (df['station_id_int'] < 1000)]
 
     # Iterate through the filtered dataframe and create the ID mapping
     for index, row in tqdm(df_filtered.iterrows(), total=df_filtered.shape[0],
                            desc="Processing Rows"):
-        start_id = row['start_id']
-        start_lat = row['start_lat']
-        start_lng = row['start_lng']
-        start_station_name = row['start_station_name']
-        ride_count += int(row['count'])
+        station_id = row['station_id']
+        lat = row['lat']
+        lng = row['lng']
+        station_name = row['station_name']
         closest_id = None
         closest_distance = float('inf')
 
-        if start_id not in station_id_mapping:
-            station_id_mapping[start_id] = set()
+        if station_id not in station_id_mapping:
+            station_id_mapping[station_id] = set()
 
-        if start_id in MANUAL_MAPPINGS.keys():
-            station_id_mapping[start_id].add(MANUAL_MAPPINGS[start_id])
+        if station_id in MANUAL_MAPPINGS.keys():
+            station_id_mapping[station_id].add(MANUAL_MAPPINGS[station_id])
             continue
 
         for other_index, other_row in df.iterrows():
-            if other_row['start_id'] in df_filtered['start_id'].values:
+            if other_row['station_id'] in df_filtered['station_id'].values:
                 # Ignore rows that are legacy ids
                 continue
             if index == other_index:
                 # skip self record
                 continue
 
-            other_id = other_row['start_id']
-            other_lat = other_row['start_lat']
-            other_lng = other_row['start_lng']
-            other_station_name = other_row['start_station_name']
+            other_id = other_row['station_id']
+            other_lat = other_row['lat']
+            other_lng = other_row['lng']
+            other_station_name = other_row['station_name']
 
             # Short circuit if station names match directly
-            if start_station_name.lower() == other_station_name.lower():
-                station_id_mapping[start_id].add(other_id)
+            if station_name.lower() == other_station_name.lower():
+                station_id_mapping[station_id].add(other_id)
                 closest_distance = float('inf')
                 break
 
             # Calculate distance using haversine
-            distance = calculate_distance(start_lat, start_lng, other_lat,
+            distance = calculate_distance(lat, lng, other_lat,
                                           other_lng)
             if distance < closest_distance:
                 closest_id = other_id
@@ -193,13 +191,13 @@ def generate_mapping(filename, max_distance=DEFAULT_MAX_DISTANCE_METERS,
 
         # Add the closest match to the id_mapping if it is within max distance
         if closest_distance <= max_distance:
-            station_id_mapping[start_id].add(closest_id)
+            station_id_mapping[station_id].add(closest_id)
 
-        if len(station_id_mapping[start_id]) == 0:
-            if start_id in missing_mappings:
-                missing_mappings[start_id].add(start_station_name)
+        if len(station_id_mapping[station_id]) == 0:
+            if station_id in missing_mappings:
+                missing_mappings[station_id].add(station_name)
             else:
-                missing_mappings[start_id] = {start_station_name}
+                missing_mappings[station_id] = {station_name}
 
     if verbose:
         log_duplicates(station_id_mapping)
@@ -207,7 +205,6 @@ def generate_mapping(filename, max_distance=DEFAULT_MAX_DISTANCE_METERS,
         log_missing(missing_mappings)
 
     results = format_results(station_id_mapping, missing_mappings)
-    print("\nReconciled %d worth of rides" % ride_count)
     print("\nMapped %d stations" % len(results['known_mappings']))
 
     if write_to_disk:
