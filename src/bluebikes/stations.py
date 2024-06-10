@@ -75,7 +75,11 @@ for file, params in files.items():
 combined_df = pd.concat(dataframes, ignore_index=True)
 
 # Drop the 'Publicly Exposed' column if you don't need it anymore
-# combined_df.drop('Publicly Exposed', axis=1, inplace=True)
+combined_df.drop('Municipality', axis=1, inplace=True)
+combined_df.drop('Public', axis=1, inplace=True)
+combined_df.drop('# of Docks', axis=1, inplace=True)
+combined_df.drop('File', axis=1, inplace=True)
+combined_df = combined_df.assign(count_f=1)
 
 # Remove duplicates based on 'Station ID' while keeping the first occurrence
 final_df = combined_df.drop_duplicates()

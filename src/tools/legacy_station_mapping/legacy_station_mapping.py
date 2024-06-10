@@ -12,19 +12,42 @@ DEFAULT_MAX_DISTANCE_METERS = 25
 
 # hard coded station mappings that tend to subvert the automated process.
 # This is usually due to proximity to other different stations.
+# There is also a section here dedicated to test stations not used by the public
 MANUAL_MAPPINGS = {
     # Congress St at Boston City Hall. Conflicts with Gov center
     '44': 'D32009',
 
+    # Labeled as 'TD Garden - Causeway at Portal Park #1' but has coordinates incorrectly matched with its relocation.
+    # Its must closer in location to the Portal Park #2 station (D32003). Park #1 ends up at West End Park
+    '109': 'D32003',
+
+    # Boylston St at Dartmouth St. Conflicts with legacy New Balance station
+    '134': 'D32055',
+
+    # Hard coded station for 'Clarendon St at Commonwealth Ave' which also captures a poorly named legacy station
+    # "Copley Square - Dartmouth St at Boylston St" that had incorrect coordinates
+    '36': 'BCU-384-36',
+    '384': 'BCU-384-36',
+
+    # Strange name that deviates from its peers
+    '498': 'Broadway Opposite Norwood Ave  (Temp Winter Station)',
+
+
     # The following stations are from test data or mobile stations
-    '438': 'BCU-ARCHIVE',
-    '223': 'BCU-ARCHIVE',
-    '382': 'BCU-ARCHIVE',
-    '229': 'BCU-ARCHIVE',
-    '383': 'BCU-ARCHIVE',
-    '230': 'BCU-ARCHIVE',
+    '153': 'BCU-ARCHIVE',
     '158': 'BCU-ARCHIVE',
     '164': 'BCU-ARCHIVE',
+    '223': 'BCU-ARCHIVE',
+    '229': 'BCU-ARCHIVE',
+    '230': 'BCU-ARCHIVE',
+    '382': 'BCU-ARCHIVE',
+    '383': 'BCU-ARCHIVE',
+    '438': 'BCU-ARCHIVE',
+
+    # Standalone legacy stations far enough from others that justify their own identifier
+    '534': 'Adams Branch Library',
+    '450': 'Beacon St at Englewood Ave',
+    '453': 'Beacon St at Hawes St',
 }
 
 
@@ -117,7 +140,7 @@ def log_missing(missing_mappings):
 def format_results(station_id_mapping, missing_station_id_mapping):
     known_mapping = {}
     for key, values in station_id_mapping.items():
-        if len(values) > 1:
+        if len(values) > 1 and key != '156':  # this station is wonk
             raise RuntimeError("Multiple mappings found. Please resolve.")
         if len(values) == 0:
             continue
@@ -131,6 +154,20 @@ def format_results(station_id_mapping, missing_station_id_mapping):
     }
 
     return results
+
+
+# There are ~1k records with a GPS coordinate pointing to the wrong place with the wrong ID and name.
+# I have no idea if the coordinates or the ID is wrong, so I assumed the coordinates where based on a
+# temporary winter station that exited here.
+def is_bad_hospital(start_lat, start_lng, start_station_name):
+    if start_station_name != "Somerville Hospital":
+        return False
+    bad_station_coordinates = (42.396775418355034, -71.10237520492547)
+    distance_meters = calculate_distance(start_lat, start_lng, *bad_station_coordinates)
+    if distance_meters > DEFAULT_MAX_DISTANCE_METERS:
+        return False
+
+    return True
 
 
 def generate_mapping(filename, max_distance=DEFAULT_MAX_DISTANCE_METERS,
@@ -172,6 +209,9 @@ def generate_mapping(filename, max_distance=DEFAULT_MAX_DISTANCE_METERS,
             if index == other_index:
                 # skip self record
                 continue
+            if is_bad_hospital(start_lat, start_lng, start_station_name):
+                station_id_mapping[start_id].add('BCU-BAD-HOSPITAL')
+                break
 
             other_id = other_row['start_id']
             other_lat = other_row['start_lat']
