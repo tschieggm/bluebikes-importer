@@ -1,30 +1,26 @@
+import os
+import pandas as pd
+
 """
+Published stations are contained in the following CSV files described in the following formats:
+
+[Hubway_Stations_2011_2016.csv]
+Station,Station ID,Latitude,Longitude,Municipality,# of Docks
+Fan Pier,A32000,42.35328743,-71.04438901,Boston,15
+
+[previous_Hubway_Stations_as_of_July_2017.csv]
+Station ID,Station,Latitude,Longitude,Municipality,publiclyExposed,# of Docks
+A32019,175 N Harvard St,42.363796,-71.129164,Boston,1,18
+
+[Hubway_Stations_as_of_July_2017]
+"Number","Name","Latitude","Longitude","District","Public","Total docks"
+"A32019","175 N Harvard St","42.363796","-71.129164","Boston","Yes","18"
+
 [current_bluebikes_stations.csv]
 Last Updated:,12/5/2023,,,,,
 Number,Name,Latitude,Longitude,District,Public,Total docks
 K32015,1200 Beacon St,42.34414899,-71.11467361,Brookline,Yes,15
 """
-import os
-
-"""
-[Hubway_Stations_2011_2016.csv]
-Station,Station ID,Latitude,Longitude,Municipality,# of Docks
-Fan Pier,A32000,42.35328743,-71.04438901,Boston,15
-"""
-
-"""
-[Hubway_Stations_as_of_July_2017]
-"Number","Name","Latitude","Longitude","District","Public","Total docks"
-"A32019","175 N Harvard St","42.363796","-71.129164","Boston","Yes","18"
-"""
-
-"""
-[previous_Hubway_Stations_as_of_July_2017.csv]
-Station ID,Station,Latitude,Longitude,Municipality,publiclyExposed,# of Docks
-A32019,175 N Harvard St,42.363796,-71.129164,Boston,1,18
-"""
-
-import pandas as pd
 
 # Define the paths to the files
 files = {
@@ -47,6 +43,15 @@ files = {
         'rename': {'Station': 'Name', 'publiclyExposed': 'Public'}
     }
 }
+
+
+# Function to fill NaNs with the mode
+def fill_with_mode(series):
+    if series.mode().empty:
+        return series
+    else:
+        return series.fillna(series.mode()[0])
+
 
 # Initialize an empty list to store dataframes
 dataframes = []
@@ -71,21 +76,30 @@ for file, params in files.items():
     df['File'] = file
     dataframes.append(df)
 
+
 # Concatenate all dataframes
 combined_df = pd.concat(dataframes, ignore_index=True)
 
+# Function to fill NaNs with the mode within each group
+# def fill_with_mode(series):
+#     mode = series.mode().iloc[0] if not series.mode().empty else None
+#     return series.fillna(mode)
+
+# Apply the function to fill NaNs for 'Publicly Exposed'
+combined_df['Public'] = combined_df.groupby('Station ID')['Public'].transform(fill_with_mode)
+
+
 # Drop the 'Publicly Exposed' column if you don't need it anymore
-combined_df.drop('Municipality', axis=1, inplace=True)
-combined_df.drop('Public', axis=1, inplace=True)
-combined_df.drop('# of Docks', axis=1, inplace=True)
-combined_df.drop('File', axis=1, inplace=True)
-combined_df = combined_df.assign(count_f=1)
+# combined_df.drop('Municipality', axis=1, inplace=True)
+# combined_df.drop('Public', axis=1, inplace=True)
+# combined_df.drop('# of Docks', axis=1, inplace=True)
+# combined_df.drop('File', axis=1, inplace=True)
+#
+# # Remove duplicates based on 'Station ID' while keeping the first occurrence
+# final_df = combined_df.drop_duplicates()
+#
+# with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+#     # Print the final dataframe
+#     print(final_df)
 
-# Remove duplicates based on 'Station ID' while keeping the first occurrence
-final_df = combined_df.drop_duplicates()
-
-with pd.option_context('display.max_rows', None, 'display.max_columns', None):
-    # Print the final dataframe
-    print(final_df)
-
-final_df.to_csv('all_stations.csv', index=False)
+combined_df.to_csv('all_stations.csv', index=False)
