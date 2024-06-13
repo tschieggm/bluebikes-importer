@@ -1,9 +1,9 @@
 import os
-from bluebikes.legacy_stations import mapping
+from bluebikes.stations.legacy import mapping
 
 
-def test_insert_rows_from_list_of_csvs(legacy_mapping_dir):
-    test_file = os.path.join(legacy_mapping_dir, "mapping.csv")
+def test_insert_rows_from_list_of_csvs(legacy_stations_dir):
+    test_file = os.path.join(legacy_stations_dir, "mapping.csv")
     mappings = mapping.generate_mapping(test_file)
 
     expected_mappings = {
