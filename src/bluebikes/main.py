@@ -9,9 +9,10 @@ from bluebikes import download
 
 from tqdm.contrib.concurrent import process_map
 
+
 def main_cli():
     parser = argparse.ArgumentParser(description="Download Blue Bikes data as CSV files, then load them into a SQLite Database called bluebike.sqlite")
-    parser.add_argument("-d", "--data_dir", default="data", 
+    parser.add_argument("-d", "--data_dir", default="data/raw",
                     help="A folder to store Blue Bikes CSV files downloaded from the S3 bucket. Defaults to 'data'."
                     )
     parser.add_argument("--no_cleanup", action="store_true", 

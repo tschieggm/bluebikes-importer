@@ -23,7 +23,7 @@ legacy station ids.
     ORDER BY start_station_name
 ```
 
-*(actual query used can be found in stations_query.sql)*
+*(actual query used can be found in legacy_input_query.sql)*
 
 ### Example input data
 

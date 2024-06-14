@@ -14,8 +14,13 @@ def csv_dir(fixture_dir):
 
 
 @pytest.fixture(scope="session")
-def legacy_mapping_dir(fixture_dir):
-    return os.path.join(fixture_dir, "legacy_station")
+def legacy_stations_dir(fixture_dir):
+    return os.path.join(fixture_dir, "legacy_stations")
+
+
+@pytest.fixture(scope="session")
+def published_stations_dir(fixture_dir):
+    return os.path.join(fixture_dir, "published_stations")
 
 
 @pytest.fixture(scope="function")

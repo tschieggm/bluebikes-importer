@@ -74,8 +74,8 @@ def load_input_csv(filename):
     directories_to_check = [
         ".",
         "data",
-        os.path.join('src', 'bluebikes', 'legacy_stations'),
-        os.path.join('tests', 'test_files', 'legacy_station'),
+        os.path.join('src', 'bluebikes', 'stations'),
+        os.path.join('tests', 'test_files', 'legacy_stations'),
     ]
     script_dir = os.path.dirname(os.path.abspath(__file__))
     step_up_to_root = os.path.join('../../tools', '..', '..')
@@ -251,7 +251,7 @@ def generate_mapping(filename, max_distance=DEFAULT_MAX_DISTANCE_METERS,
     print("\nMapped %d stations" % len(results['known_mappings']))
 
     if write_to_disk:
-        json.dump(results, open("results.json", 'w'), cls=SetEncoder)
+        json.dump(results, open("../results.json", 'w'), cls=SetEncoder)
     else:
         return results
 
@@ -262,7 +262,7 @@ def main_cli():
         names and coordinates based on an input query described in the README.md
     """)
     parser.add_argument('-filename',
-                        default="station_mapping_input.csv",
+                        default="legacy_station_input.csv",
                         help="""
         Input CSV containing station facets from ride data
     """)
