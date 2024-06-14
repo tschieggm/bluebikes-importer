@@ -112,7 +112,6 @@ def is_bad_hospital(start_lat, start_lng, start_station_name):
     return True
 
 
-
 # print out stations with duplicate mappings (123|45 -> ABC001)
 def log_duplicates(station_id_mapping):
     duplicates = {}
@@ -214,9 +213,6 @@ def generate_mapping(filename, max_distance=DEFAULT_MAX_DISTANCE_METERS,
             if index == other_index:
                 # skip self record
                 continue
-            if is_bad_hospital(start_lat, start_lng, start_station_name):
-                station_id_mapping[start_id].add('BCU-BAD-HOSPITAL')
-                break
 
             other_id = other_row['station_id']
             other_lat = other_row['lat']
