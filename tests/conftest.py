@@ -23,6 +23,11 @@ def published_stations_dir(fixture_dir):
     return os.path.join(fixture_dir, "published_stations")
 
 
+@pytest.fixture(scope="session")
+def remedial_stations_input_file(fixture_dir):
+    return os.path.join(fixture_dir, "remedial_stations", "station_input.csv")
+
+
 @pytest.fixture(scope="function")
 def empty_in_mem_database_connection():
     with sqlite3.connect(":memory") as conn:

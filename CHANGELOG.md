@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support for creating a csv of all published stations in the same format
 - Basic support for identifying stations with incorrect data
+- Refactored the layout of the stations directory
+
 
 ## [0.0.2] - 2024-06-10
 
@@ -28,4 +30,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Removed
-
