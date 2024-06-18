@@ -33,7 +33,6 @@ MANUAL_MAPPINGS = {
     # Strange name that deviates from its peers
     '498': 'Broadway Opposite Norwood Ave  (Temp Winter Station)',
 
-
     # The following stations are from test data or mobile stations
     '153': 'BCU-ARCHIVE',
     '158': 'BCU-ARCHIVE',
@@ -74,11 +73,12 @@ def load_input_csv(filename):
     directories_to_check = [
         ".",
         "data",
+        os.path.join('data', 'processed'),
         os.path.join('src', 'bluebikes', 'stations'),
         os.path.join('tests', 'test_files', 'legacy_stations'),
     ]
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    step_up_to_root = os.path.join('../../tools', '..', '..')
+    step_up_to_root = os.path.join('..', '..', '..', '..')
     project_dir = os.path.abspath(os.path.join(script_dir, step_up_to_root))
     absolute_directories = [os.path.join(project_dir, dir) for dir in
                             directories_to_check]
