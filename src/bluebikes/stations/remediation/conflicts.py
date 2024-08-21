@@ -34,8 +34,8 @@ def process(file_path, write_to_disk=None):
         print(f"Writing conflicting stations to {output_file}")
         with open(output_file, "w") as f:
             highlighted.to_csv(f, index=False)
-    else:
-        return highlighted
+
+    return highlighted
 
 
 def main_cli():

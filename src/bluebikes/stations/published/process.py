@@ -77,8 +77,8 @@ def process(station_file_directory, write_to_disk=None, simple_output=False):
         print("Writing to disk: %s" % output_file)
         with open(output_file, 'w') as f:
             combined_df.to_csv(f, index=False)
-    else:
-        return combined_df
+
+    return combined_df
 
 
 def main_cli():

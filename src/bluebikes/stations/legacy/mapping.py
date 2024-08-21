@@ -255,8 +255,8 @@ def generate_mapping(filename, max_distance=DEFAULT_MAX_DISTANCE_METERS,
         output_file = write_to_disk
         print("Writing results to %s" % output_file)
         json.dump(results, open(output_file, 'w'), cls=SetEncoder)
-    else:
-        return results
+
+    return results
 
 
 def main_cli():
