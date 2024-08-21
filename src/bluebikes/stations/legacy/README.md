@@ -54,7 +54,7 @@ different) proximity and for test station data that can be discarded.
 
 ### Git etiquette
 
-A single `station_mapping_input.csv` file has been committed to the repository
+A single `legacy_station_input.csv` example file has been committed to the repository
 to create the initial results set. This file was generated in June 2024 and
 should not need to be regenerated.
 
