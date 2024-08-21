@@ -10,6 +10,9 @@ import bluebikes.sql
 # extracts YYYYMM from file names
 MONTH_YEAR_RE = r'(20[0-4]\d)(0[1-9]|1[0-2])'
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+# bluebikes started including fractional time in 2024
+DATE_FORMAT_WITH_MS = "%Y-%m-%d %H:%M:%S.%f"
+
 DATABASE = 'bluebike.sqlite'
 BULK_INSERT_SIZE = 1000
 DATABASE_LOCK_TIMEOUT = 900  # 15 minutes
@@ -80,8 +83,9 @@ def _insert_rows_from_single_csv(file, cursor):
 
             # newer records drop duration
             if 202304 <= month_year:
-                end_date = datetime.strptime(row[4], DATE_FORMAT)
-                start_date = datetime.strptime(row[3], DATE_FORMAT)
+                date_fmt = DATE_FORMAT_WITH_MS if (202406 <= month_year) else DATE_FORMAT
+                end_date = datetime.strptime(row[4], date_fmt)
+                start_date = datetime.strptime(row[3], date_fmt)
                 time_delta = end_date - start_date
                 row.insert(3, time_delta.total_seconds())
 
