@@ -10,6 +10,7 @@ from haversine import haversine, Unit
 # 25 meters seems to be the sweet spot to minimize false positives and negatives
 DEFAULT_MAX_DISTANCE_METERS = 25
 
+DEFAULT_OUTPUT_FILE = "data/processed/legacy_station_mapping_results.json"
 
 # hard coded station mappings that tend to subvert the automated process.
 # This is usually due to proximity to other different stations.
@@ -73,8 +74,8 @@ def load_input_csv(filename):
     directories_to_check = [
         ".",
         "data",
+        "examples",
         os.path.join('data', 'processed'),
-        os.path.join('src', 'bluebikes', 'stations'),
         os.path.join('tests', 'test_files', 'legacy_stations'),
     ]
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -174,7 +175,7 @@ def format_results(station_id_mapping, missing_station_id_mapping):
 
 
 def generate_mapping(filename, max_distance=DEFAULT_MAX_DISTANCE_METERS,
-                     verbose=False, write_to_disk=False):
+                     verbose=False, write_to_disk=None):
     df = load_input_csv(filename)
     print("Matching stations under %d meters" % max_distance)
 
@@ -250,8 +251,10 @@ def generate_mapping(filename, max_distance=DEFAULT_MAX_DISTANCE_METERS,
     results = format_results(station_id_mapping, missing_mappings)
     print("\nMapped %d stations" % len(results['known_mappings']))
 
-    if write_to_disk:
-        json.dump(results, open("../results.json", 'w'), cls=SetEncoder)
+    if write_to_disk is not None:
+        output_file = write_to_disk
+        print("Writing results to %s" % output_file)
+        json.dump(results, open(output_file, 'w'), cls=SetEncoder)
     else:
         return results
 
@@ -273,7 +276,8 @@ def main_cli():
         Lower numbers produce fewer false positives.
         The default should be suitable for most cases.
     """)
-    parser.add_argument("--write-to-disk", action="store_true",
+    parser.add_argument("-w", "--write-to-disk",
+                        default=DEFAULT_OUTPUT_FILE,
                         help="Writes the results to disk")
     parser.add_argument("--verbose", action="store_true",
                         help="Increases the verbosity for more detailed logging")

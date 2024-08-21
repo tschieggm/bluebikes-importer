@@ -2,6 +2,8 @@ import os
 import argparse
 import pandas as pd
 
+DEFAULT_OUTPUT_FILE = "data/processed/all_published_stations.csv"
+
 # Define the schema and names of the files to process
 STATION_FILES = {
     'current_bluebikes_stations.csv': {
@@ -30,7 +32,8 @@ def fill_with_mode(series):
     if series.mode().empty:
         return series
     else:
-        return series.fillna(series.mode()[0])
+        mode = series.mode()[0]
+        return series.infer_objects(copy=False).fillna(mode)
 
 
 def process(station_file_directory, write_to_disk=False, simple_output=False):
@@ -69,8 +72,11 @@ def process(station_file_directory, write_to_disk=False, simple_output=False):
         combined_df.drop('# of Docks', axis=1, inplace=True)
         combined_df.drop('File', axis=1, inplace=True)
 
-    if write_to_disk:
-        combined_df.to_csv('all_stations.csv', index=False)
+    if write_to_disk is not None:
+        output_file = write_to_disk
+        print("Writing to disk: %s" % output_file)
+        with open(output_file, 'w') as f:
+            combined_df.to_csv(f, index=False)
     else:
         return combined_df
 
@@ -81,10 +87,11 @@ def main_cli():
     """)
     parser.add_argument('directory',
                         default="data/raw",
+                        nargs="?",  # make this single positional argument optional
                         help="""
         Input CSV containing station facets from ride data
     """)
-    parser.add_argument("--write-to-disk", action="store_true",
+    parser.add_argument("-w", "--write-to-disk", default=DEFAULT_OUTPUT_FILE,
                         help="Writes the results to disk")
     parser.add_argument("--simple-output", action="store_true",
                         help="""

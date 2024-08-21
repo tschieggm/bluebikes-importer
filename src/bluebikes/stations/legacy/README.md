@@ -63,12 +63,20 @@ should not need to be regenerated.
 To run this tool locally, use the following commands from the project root
 
 ```commandline
-poetry run legacy_station_mapping --write-to-disk
+poetry run legacy_station_mapping
 ```
 
 ## Output
-
+```json
+{
+  "known_mappings": {
+    "1": "X32999",
+    "3": "B32006", 
+    "4": "C32000", 
+    "etc": "etc"
+  }
+}
+```
 ## TODO
-
 - Actually utilize the output to map station ids on ingestion
 - Figure out a sane way to address the ~43 stations with missing mappings

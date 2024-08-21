@@ -1,6 +1,8 @@
 import argparse
 import pandas as pd
 
+DEFAULT_OUTPUT_FILE = "data/processed/conflicting_stations.csv"
+
 
 def process(file_path, write_to_disk=False):
     df = pd.read_csv(file_path)
@@ -10,6 +12,7 @@ def process(file_path, write_to_disk=False):
     df = df[pd.isna(df['station_id_int'])]
 
     # Remove periods from the stations names
+    df['station_name'] = df['station_name'].astype(str)
     df['station_name'] = df['station_name'].str.replace('.', '', regex=False)
 
     # Group by station_name and count the unique station_id entries
@@ -23,11 +26,14 @@ def process(file_path, write_to_disk=False):
 
     # Highlight instances
     highlighted = df[df['station_name'].isin(overlapping_names)]
-    highlighted.drop('station_id_int', inplace=True, axis=1)
-    highlighted.sort_values(by=['station_name', 'station_id'], inplace=True)
+    highlighted.drop('station_id_int', inplace=False, axis=1)
+    highlighted.sort_values(by=['station_name', 'station_id'], inplace=False)
 
-    if write_to_disk:
-        highlighted.to_csv('conflicting_stations.csv', index=False)
+    if write_to_disk is not None:
+        output_file = write_to_disk
+        print(f"Writing conflicting stations to {output_file}")
+        with open(output_file, "w") as f:
+            highlighted.to_csv(f, index=False)
     else:
         return highlighted
 
@@ -37,11 +43,11 @@ def main_cli():
         Tool to identify and highlight conflicts between station identifiers, names, and coordinates
     """)
     parser.add_argument('--station_data',
-                        default="data/processed/legacy_station_input.csv",
+                        default="examples/overlapping_stations.csv",
                         help="""
         Input CSV containing station facets from ride data
     """)
-    parser.add_argument("--write-to-disk", action="store_true",
+    parser.add_argument("-w", "--write-to-disk", default=DEFAULT_OUTPUT_FILE,
                         help="Writes the results to disk")
     args = parser.parse_args()
 
