@@ -4,7 +4,7 @@ import pandas as pd
 DEFAULT_OUTPUT_FILE = "data/processed/conflicting_stations.csv"
 
 
-def process(file_path, write_to_disk=False):
+def process(file_path, write_to_disk=None):
     df = pd.read_csv(file_path)
 
     # Filter out station_ids that are integers under 1000
@@ -26,7 +26,7 @@ def process(file_path, write_to_disk=False):
 
     # Highlight instances
     highlighted = df[df['station_name'].isin(overlapping_names)]
-    highlighted.drop('station_id_int', inplace=False, axis=1)
+    highlighted.drop('station_id_int', inplace=True, axis=1)
     highlighted.sort_values(by=['station_name', 'station_id'], inplace=False)
 
     if write_to_disk is not None:

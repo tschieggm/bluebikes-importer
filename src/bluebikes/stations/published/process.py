@@ -36,7 +36,7 @@ def fill_with_mode(series):
         return series.infer_objects(copy=False).fillna(mode)
 
 
-def process(station_file_directory, write_to_disk=False, simple_output=False):
+def process(station_file_directory, write_to_disk=None, simple_output=False):
     # Initialize an empty list to store dataframes
     dataframes = []
 
