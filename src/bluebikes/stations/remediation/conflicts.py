@@ -27,7 +27,7 @@ def process(file_path, write_to_disk=None):
     # Highlight instances
     highlighted = df[df['station_name'].isin(overlapping_names)]
     highlighted.drop('station_id_int', inplace=True, axis=1)
-    highlighted.sort_values(by=['station_name', 'station_id'], inplace=False)
+    highlighted.sort_values(by=['station_name', 'station_id'], inplace=True)
 
     if write_to_disk is not None:
         output_file = write_to_disk
